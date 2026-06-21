@@ -13,3 +13,6 @@ spring:
     show-sql: true
   flyway:
     batch: true
+loggin:
+  level:
+    org.flywaydb: DEBUG
