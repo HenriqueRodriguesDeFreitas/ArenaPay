@@ -25,7 +25,7 @@ public class StateService {
 
     @Transactional
     public List<StateResponseDto> findAll() {
-        log.info("Iniciando a busca de estados no banco de dados.");
+        log.info("Fetching all states from the database.");
 
         Instant start = Instant.now();
 
@@ -34,9 +34,9 @@ public class StateService {
 
         long timeTaken = Duration.between(start, Instant.now()).toMillis();
         if (timeTaken > 2000) {
-            log.warn("ALERTA DE PERFORMANCE: A listagem demorou {}ms para responder!", timeTaken);
+            log.warn("PERFORMANCE WARNING: The listing took {}ms to respond!", timeTaken);
         } else {
-            log.info("Busca finalizada. Tempo gasto: {}ms para encontrar {} estados no banco.", timeTaken, responseList.size());
+            log.info("Search finished. Time taken: {}ms to find {} states in the database.", timeTaken, responseList.size());
         }
         return responseList;
     }
