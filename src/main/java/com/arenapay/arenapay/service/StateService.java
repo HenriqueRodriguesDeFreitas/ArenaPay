@@ -1,6 +1,7 @@
 package com.arenapay.arenapay.service;
 
 import com.arenapay.arenapay.dto.response.StateResponseDto;
+import com.arenapay.arenapay.exception.custom.NotFoundException;
 import com.arenapay.arenapay.mapper.StateMapper;
 import com.arenapay.arenapay.repository.StateRepository;
 import org.slf4j.Logger;
@@ -32,12 +33,34 @@ public class StateService {
         List<StateResponseDto> responseList = stateRepository.findAll()
                 .stream().map(stateMapper::toResponse).toList();
 
-        long timeTaken = Duration.between(start, Instant.now()).toMillis();
-        if (timeTaken > 2000) {
-            log.warn("PERFORMANCE WARNING: The listing took {}ms to respond!", timeTaken);
-        } else {
-            log.info("Search finished. Time taken: {}ms to find {} states in the database.", timeTaken, responseList.size());
-        }
+        long timeTaken = calculateTimeTaken(start);
+        logPerformanceTwoSeconds("findAll", timeTaken, responseList.size());
         return responseList;
+    }
+
+    @Transactional(readOnly = true)
+    public StateResponseDto findByName(String name) {
+        log.info("Fetching state by name in the database.");
+
+        Instant start = Instant.now();
+
+        var state = stateRepository.findByNameIgnoreCase(name.trim()).orElseThrow(() -> new NotFoundException("State with name: " + name + " not found"));
+
+        long timeTaken = calculateTimeTaken(start);
+        logPerformanceTwoSeconds("findByName", timeTaken, 1);
+
+        return stateMapper.toResponse(state);
+    }
+
+    private long calculateTimeTaken(Instant start) {
+        return Duration.between(start, Instant.now()).toMillis();
+    }
+
+    private void logPerformanceTwoSeconds(String methodName, long timeTaken, int resultCount) {
+        if (timeTaken > 2000) {
+            log.warn("PERFORMANCE WARNING: Method '{}' took {}ms to respond!", methodName, timeTaken);
+        } else {
+            log.info("Method '{}' finished. Time taken: {}ms. Records found: {}", methodName, timeTaken, resultCount);
+        }
     }
 }
