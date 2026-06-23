@@ -23,7 +23,7 @@ public class StateService {
         this.stateMapper = stateMapper;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<StateResponseDto> findAll() {
         log.info("Fetching all states from the database.");
 
