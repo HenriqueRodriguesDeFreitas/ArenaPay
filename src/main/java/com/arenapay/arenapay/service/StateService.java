@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class StateService {
     private final StateRepository stateRepository;
     private final StateMapper stateMapper;
@@ -24,21 +25,19 @@ public class StateService {
         this.stateMapper = stateMapper;
     }
 
-    @Transactional(readOnly = true)
     public List<StateResponseDto> findAll() {
         log.info("Fetching all states from the database.");
 
         Instant start = Instant.now();
 
         List<StateResponseDto> responseList = stateRepository.findAll()
-                .stream().map(stateMapper::toResponse).toList();
+            .stream().map(stateMapper::toResponse).toList();
 
         long timeTaken = calculateTimeTaken(start);
         logPerformanceTwoSeconds("findAll", timeTaken, responseList.size());
         return responseList;
     }
 
-    @Transactional(readOnly = true)
     public StateResponseDto findByName(String name) {
         log.info("Fetching state by name in the database.");
 
