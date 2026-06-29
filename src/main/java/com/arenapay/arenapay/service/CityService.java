@@ -13,6 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
+import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.calculateTimeTaken;
+import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.logPerformanceTwoSeconds;
+import static com.arenapay.arenapay.util.StringUtils.NormalizeTrim.normalizeTrim;
+
 @Service
 @Transactional(readOnly = true)
 public class CityService {
@@ -21,6 +27,7 @@ public class CityService {
     private final StateRepository stateRepository;
     private final CityMapper cityMapper;
     private static final Logger log = LoggerFactory.getLogger(CityService.class);
+    private static final String CLASS_NAME = CityService.class.getSimpleName();
 
     public CityService(CityRepository cityRepository, StateRepository stateRepository,CityMapper cityMapper) {
         this.cityRepository = cityRepository;
@@ -30,20 +37,17 @@ public class CityService {
 
     @Transactional
     public CityResponse save(CityRequest cityRequest) {
-        log.info("Initialized method save from class: CityService");
+        log.info("Starting city creation process for: {}", cityRequest.name());
 
-        log.info("Normalizing Strings");
+        Instant start = Instant.now();
+
         var stateName = normalizeTrim(cityRequest.state());
         var cityName = normalizeTrim(cityRequest.name());
-        log.info("Normalization success");
 
-        log.info("Initializing find state by name: {}", stateName);
         var stateReturn = stateRepository.findByNameIgnoreCase(stateName)
             .orElseThrow(()-> new NotFoundException("State with name: " + stateName + " not found"));
-        log.info("State returned!");
 
-        log.info("Initializing verification if state: {} already has city: {}", stateName, cityName);
-        if(cityRepository.findByNameIgnoreCaseAndStateById(cityName, stateReturn.getId())) {
+        if(cityRepository.existsByNameIgnoreCaseAndStateId(cityName, stateReturn.getId())) {
             String msgError = String.format("State '%s' already has a record of a city registered with name '%s'", stateReturn.getName(), cityName);
             throw new EntityExistingException(msgError);
         }
@@ -52,11 +56,12 @@ public class CityService {
         var citySaved = cityRepository.save(newCity);
         log.info("City saved! Id: {}, name: {}, references state: {}", citySaved.getId(), citySaved.getName(), stateName);
 
+        long timeTaken = calculateTimeTaken(start);
+        logPerformanceTwoSeconds(CLASS_NAME, "save", timeTaken, 1);
+
         log.info("Returned to user with success!");
         return cityMapper.toResponse(citySaved);
     }
 
-    private String normalizeTrim (String text) {
-        return text.trim();
-    }
+
 }
