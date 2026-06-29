@@ -1,4 +1,4 @@
-package com.arenapay.arenapay.service.LoggerPerformance;
+package com.arenapay.arenapay.util.LoggerPerformance;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
