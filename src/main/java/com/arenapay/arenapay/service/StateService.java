@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+
+import static com.arenapay.arenapay.service.LoggerPerformance.LogPerformance.calculateTimeTaken;
+import static com.arenapay.arenapay.service.LoggerPerformance.LogPerformance.logPerformanceTwoSeconds;
 
 @Service
 @Transactional(readOnly = true)
@@ -19,6 +21,7 @@ public class StateService {
     private final StateRepository stateRepository;
     private final StateMapper stateMapper;
     private static final Logger log = LoggerFactory.getLogger(StateService.class);
+    private static final String CLASS_NAME = StateService.class.getSimpleName();
 
     public StateService(StateRepository stateRepository, StateMapper stateMapper) {
         this.stateRepository = stateRepository;
@@ -34,7 +37,7 @@ public class StateService {
             .stream().map(stateMapper::toResponse).toList();
 
         long timeTaken = calculateTimeTaken(start);
-        logPerformanceTwoSeconds("findAll", timeTaken, responseList.size());
+        logPerformanceTwoSeconds(CLASS_NAME, "findAll", timeTaken, responseList.size());
         return responseList;
     }
 
@@ -46,7 +49,7 @@ public class StateService {
         var state = stateRepository.findByNameIgnoreCase(name.trim()).orElseThrow(() -> new NotFoundException("State with name: " + name + " not found"));
 
         long timeTaken = calculateTimeTaken(start);
-        logPerformanceTwoSeconds("findByName", timeTaken, 1);
+        logPerformanceTwoSeconds(CLASS_NAME, "findByName", timeTaken, 1);
 
         return stateMapper.toResponse(state);
     }
