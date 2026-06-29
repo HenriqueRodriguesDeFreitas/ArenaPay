@@ -1,6 +1,7 @@
 package com.arenapay.arenapay.exception;
 
 import com.arenapay.arenapay.dto.response.ErrorResponseDto;
+import com.arenapay.arenapay.exception.custom.EntityExistingException;
 import com.arenapay.arenapay.exception.custom.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +22,24 @@ public class GlobalExceptionHandler {
         log.warn("Resource not found exception triggered: {}", e.getMessage());
 
         ErrorResponseDto response = toResponse(HttpStatus.NOT_FOUND,
-                "ENTITY NOT FOUND", e);
+            "ENTITY NOT FOUND", e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(EntityExistingException.class)
+    public ResponseEntity<ErrorResponseDto> entityExistingException(EntityExistingException e) {
+        log.warn("Resource found exception triggered: {}", e.getMessage());
+        ErrorResponseDto response = toResponse(HttpStatus.CONFLICT,
+            "ENTITY EXISTING", e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     private static ErrorResponseDto toResponse(HttpStatus status,
                                                String erro,
                                                Exception e) {
         return new ErrorResponseDto(LocalDateTime.now().toString(),
-                status.value(),
-                erro,
-                e.getMessage());
+            status.value(),
+            erro,
+            e.getMessage());
     }
 }
