@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-import static com.arenapay.arenapay.service.LoggerPerformance.LogPerformance.calculateTimeTaken;
-import static com.arenapay.arenapay.service.LoggerPerformance.LogPerformance.logPerformanceTwoSeconds;
+import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.calculateTimeTaken;
+import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.logPerformanceTwoSeconds;
 
 @Service
 @Transactional(readOnly = true)
