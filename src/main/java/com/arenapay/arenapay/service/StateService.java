@@ -51,15 +51,5 @@ public class StateService {
         return stateMapper.toResponse(state);
     }
 
-    private long calculateTimeTaken(Instant start) {
-        return Duration.between(start, Instant.now()).toMillis();
-    }
 
-    private void logPerformanceTwoSeconds(String methodName, long timeTaken, int resultCount) {
-        if (timeTaken > 2000) {
-            log.warn("PERFORMANCE WARNING: Method '{}' took {}ms to respond!", methodName, timeTaken);
-        } else {
-            log.info("Method '{}' finished. Time taken: {}ms. Records found: {}", methodName, timeTaken, resultCount);
-        }
-    }
 }
