@@ -2,6 +2,7 @@ package com.arenapay.arenapay.service;
 
 import com.arenapay.arenapay.dto.request.CityRequest;
 import com.arenapay.arenapay.dto.response.CityResponse;
+import com.arenapay.arenapay.exception.custom.NotFoundException;
 import com.arenapay.arenapay.mapper.CityMapper;
 import com.arenapay.arenapay.model.City;
 import com.arenapay.arenapay.model.State;
@@ -19,8 +20,7 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +66,16 @@ class CityServiceTest {
 
         assertNotNull(actualResponse, "The return value should not be null");
         assertEquals(idDefault, actualResponse.id());
+    }
+
+    @Test
+    void save_returnNotFoundException_ifStatenotFound() {
+        when(stateRepository.findByNameIgnoreCase("Pará")).thenReturn(Optional.empty());
+        CityRequest request = new CityRequest("Breves", "Pará");
+
+        NotFoundException exception = assertThrows(NotFoundException.class,()-> cityService.save(request));
+
+        assertEquals("State with name: " + request.state() + " not found", exception.getMessage());
     }
 
     private void reflectionsId(Object obj, Object id) {
