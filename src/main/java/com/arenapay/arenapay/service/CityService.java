@@ -6,14 +6,17 @@ import com.arenapay.arenapay.exception.custom.EntityExistingException;
 import com.arenapay.arenapay.exception.custom.NotFoundException;
 import com.arenapay.arenapay.mapper.CityMapper;
 import com.arenapay.arenapay.model.City;
+import com.arenapay.arenapay.model.State;
 import com.arenapay.arenapay.repository.CityRepository;
 import com.arenapay.arenapay.repository.StateRepository;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.calculateTimeTaken;
 import static com.arenapay.arenapay.util.LoggerPerformance.LogPerformance.logPerformanceTwoSeconds;
@@ -29,7 +32,7 @@ public class CityService {
     private static final Logger log = LoggerFactory.getLogger(CityService.class);
     private static final String CLASS_NAME = CityService.class.getSimpleName();
 
-    public CityService(CityRepository cityRepository, StateRepository stateRepository,CityMapper cityMapper) {
+    public CityService(CityRepository cityRepository, StateRepository stateRepository, CityMapper cityMapper) {
         this.cityRepository = cityRepository;
         this.stateRepository = stateRepository;
         this.cityMapper = cityMapper;
@@ -44,10 +47,9 @@ public class CityService {
         var stateName = normalizeTrim(cityRequest.state());
         var cityName = normalizeTrim(cityRequest.name());
 
-        var stateReturn = stateRepository.findByNameIgnoreCase(stateName)
-            .orElseThrow(()-> new NotFoundException("State with name: " + stateName + " not found"));
+        var stateReturn = getStateByNameReturn(stateName);
 
-        if(cityRepository.existsByNameIgnoreCaseAndStateId(cityName, stateReturn.getId())) {
+        if (isCityInState(cityName, stateReturn)) {
             String msgError = String.format("State '%s' already has a record of a city registered with name '%s'", stateReturn.getName(), cityName);
             throw new EntityExistingException(msgError);
         }
