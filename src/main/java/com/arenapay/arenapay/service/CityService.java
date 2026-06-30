@@ -63,5 +63,46 @@ public class CityService {
         return cityMapper.toResponse(citySaved);
     }
 
+    @Transactional
+    public CityResponse update(UUID cityId, CityRequest request) {
+        log.info("Starting city update process for ID: {} with new data: {}", cityId, request.name());
+        Instant start = Instant.now();
 
+        var cityName = normalizeTrim(request.name());
+        var stateName = normalizeTrim(request.state());
+
+        var cityReturned = cityRepository.findById(cityId).orElseThrow(() -> new NotFoundException("City with id: " + cityId + " not found"));
+        var stateReturned = getStateByNameReturn(stateName);
+
+
+        boolean nameChanged = !cityReturned.getName().equalsIgnoreCase(cityName);
+        boolean stateChanged = !cityReturned.getState().getId().equals(stateReturned.getId());
+
+        if ((nameChanged || stateChanged) && isCityInState(cityName, stateReturned)) {
+            String msgError = String.format("State '%s' already has another city registered with the name '%s'", stateReturned.getName(), cityName);
+            throw new EntityExistingException(msgError);
+        }
+
+        cityReturned.setName(cityName);
+        cityReturned.setState(stateReturned);
+
+        var citySaved = cityRepository.save(cityReturned);
+        log.info("City updated successfully! ID: {}, name: {}, references state: {}", citySaved.getId(), citySaved.getName(), stateName);
+
+        long timeTaken = calculateTimeTaken(start);
+        logPerformanceTwoSeconds(CLASS_NAME, "update", timeTaken, 1);
+
+        log.info("Returned to user with success!");
+        return cityMapper.toResponse(citySaved);
+    }
+
+    private boolean isCityInState(String name, State stateReturned) {
+        return cityRepository.existsByNameIgnoreCaseAndStateId(name, stateReturned.getId());
+    }
+
+
+    private @NonNull State getStateByNameReturn(String stateName) {
+        return stateRepository.findByNameIgnoreCase(stateName)
+            .orElseThrow(() -> new NotFoundException("State with name: " + stateName + " not found"));
+    }
 }
